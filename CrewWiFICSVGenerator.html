@@ -5,7 +5,7 @@
   <title>Wi-Fi Crew CSV Generator</title>
   <style>
     body { font-family: sans-serif; padding: 2rem; }
-    textarea { width: 100%; height: 150px; }
+    textarea { width: 100%; height: 150px; font-family: monospace; }
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
     th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
     button { margin-top: 1rem; margin-right: 0.5rem; padding: 0.5rem 1rem; }
@@ -16,7 +16,9 @@
   <h1>Wi-Fi Crew CSV Generator</h1>
 
   <p>Paste names and positions (tab-separated or spaced, e.g. from Excel):</p>
-  <textarea id="inputArea" placeholder="e.g.\nMUHAMMAD AKBAR BUDHI PRAKOSO\tElectrician\nSITI NURHALIZA\tTechnician"></textarea>
+  <textarea id="inputArea" placeholder="e.g.
+Bob Dylan	Welder
+Kylie Minogue	Roustabout"></textarea>
 
   <div>
     <button onclick="processInput()">Generate Table</button>
@@ -32,6 +34,18 @@
   </table>
 
   <script>
+    // Enable Tab character insertion in textarea
+    const inputArea = document.getElementById('inputArea');
+    inputArea.addEventListener('keydown', function(e) {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = this.selectionStart;
+        const end = this.selectionEnd;
+        this.value = this.value.substring(0, start) + '\t' + this.value.substring(end);
+        this.selectionStart = this.selectionEnd = start + 1;
+      }
+    });
+
     let processedData = [];
 
     function generateUsername(fullName) {
@@ -45,8 +59,7 @@
     }
 
     function processInput() {
-      const input = document.getElementById("inputArea").value.trim();
-      const rows = input.split(/\n/);
+      const rows = inputArea.value.trim().split(/\n/);
       processedData = [];
       const tbody = document.querySelector("#previewTable tbody");
       tbody.innerHTML = "";
@@ -73,59 +86,42 @@
       document.getElementById("previewTable").style.display = "table";
     }
 
-    function quote(str) {
-      return `"${str}"`;
-    }
+    function quote(str) { return `"${str}"`; }
 
     function formatDateAMPM(date) {
-      const day = String(date.getDate()).padStart(2, '0');
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const year = date.getFullYear();
-      let hours = date.getHours();
-      const minutes = String(date.getMinutes()).padStart(2, '0');
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const strTime = `${String(hours).padStart(2, '0')}:${minutes}${ampm}`;
-      return `${day}/${month}/${year} ${strTime}`;
+      const d = date.getDate().toString().padStart(2, '0');
+      const m = (date.getMonth()+1).toString().padStart(2, '0');
+      const y = date.getFullYear();
+      let h = date.getHours();
+      const min = date.getMinutes().toString().padStart(2, '0');
+      const ap = h >= 12 ? 'PM':'AM';
+      h = h % 12 || 12;
+      return `${d}/${m}/${y} ${h.toString().padStart(2,'0')}:${min}${ap}`;
     }
 
     function downloadCSV() {
-      if (processedData.length === 0) return;
+      if (!processedData.length) return;
       const now = new Date();
       const dateStr = formatDateAMPM(now);
       const dateCode = now.toISOString().split('T')[0];
       const fileName = `crew_accounts_${dateCode}.csv`;
-      const header = [
-        "Enabled","User ID","Password","Access Code","Plan","Valid From","To","Share",
+      const header = ["Enabled","User ID","Password","Access Code","Plan","Valid From","To","Share",
         "Billing ID","Zones","Description","Creator","Date","Daily Limit",
         "Limit logins to the selected days and time","Daily Start Time","Daily End Time",
-        "Device Restriction","Restricted MAC Address"
-      ];
-      const lines = [header.map(quote).join(",")];
-      processedData.forEach(({ name, position, username }) => {
-        const row = [
-          "yes", username, makePassword(9), "", "VTG starlink time based 30 GB plan", dateStr, "",
-          "", "", "2", position, "admin", dateStr, "off", "", "00:00:00", "00:00:00", "off", ""
-        ];
-        lines.push(row.map(quote).join(","));
+        "Device Restriction","Restricted MAC Address"];
+      const lines = [header.map(quote).join(',')];
+      processedData.forEach(({name,position,username}) => {
+        const row = ["yes",username,makePassword(9),'',"VTG starlink time based 30 GB plan",dateStr,'','', '',"2",position,'admin',dateStr,'off','','00:00:00','00:00:00','off',''];
+        lines.push(row.map(quote).join(','));
       });
-      const blob = new Blob([lines.join("\r\n")], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(url);
+      const blob = new Blob([lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = fileName; a.click(); URL.revokeObjectURL(a.href);
     }
 
-    function makePassword(length) {
-      const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let result = "";
-      for (let i = 0; i < length; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-      }
-      return result;
+    function makePassword(len) {
+      const cs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      return Array.from({length:len},()=>cs[Math.floor(Math.random()*cs.length)]).join('');
     }
   </script>
 </body>
