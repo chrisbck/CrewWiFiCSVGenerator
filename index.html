@@ -11,6 +11,11 @@
     button { margin-top: 1rem; margin-right: 0.5rem; padding: 0.5rem 1rem; }
     button:disabled { opacity: 0.5; cursor: not-allowed; }
     .duplicate { background-color: #ffe0e0; }
+    #skippedWarning {
+      display: none; margin-top: 1rem; padding: 0.5rem 1rem;
+      background: #fff4d6; border: 1px solid #e0b84a;
+    }
+    #skippedWarning pre { margin: 0.3rem 0 0; white-space: pre-wrap; }
 
     #printSheet { display: none; }
 
@@ -48,6 +53,8 @@ Kylie Minogue	Roustabout"></textarea>
     <button id="printBtn" onclick="printCredentials()" disabled>Print Credentials</button>
     <button onclick="window.open('https://10.105.2.93/admin/index-login.ant', '_blank')">IG4 Login</button>
   </div>
+
+  <div id="skippedWarning"></div>
 
   <table id="previewTable" style="display: none">
     <thead>
@@ -96,11 +103,16 @@ Kylie Minogue	Roustabout"></textarea>
       const tbody = document.querySelector("#previewTable tbody");
       tbody.innerHTML = "";
       const seenUsernames = new Set();
-      rows.forEach(row => {
+      const skipped = [];
+      rows.forEach((row, i) => {
+        if (!row.trim()) return; // blank lines are fine to ignore
         const parts = row.trim().split(/\s{2,}|\t+/);
         const name = parts[0];
         const position = parts.slice(1).join(' ');
-        if (!name || !position) return;
+        if (!name || !position) {
+          skipped.push(`Line ${i + 1}: ${row.trim()}`);
+          return;
+        }
         let username = generateUsername(name);
         const original = username;
         let counter = 1;
@@ -113,15 +125,32 @@ Kylie Minogue	Roustabout"></textarea>
         processedData.push({ name, position, username, password });
         const tr = document.createElement("tr");
         tr.className = (username !== original) ? "duplicate" : "";
-        tr.innerHTML = `<td>${name}</td><td>${position}</td><td>${username}</td>`;
+        [name, position, username].forEach(text => {
+          const td = document.createElement("td");
+          td.textContent = text;
+          tr.appendChild(td);
+        });
         tbody.appendChild(tr);
       });
-      document.getElementById("previewTable").style.display = "table";
-      downloadBtn.disabled = false;
-      printBtn.disabled = false;
+
+      const warning = document.getElementById("skippedWarning");
+      if (skipped.length) {
+        warning.innerHTML = `<strong>${skipped.length} line(s) skipped — no position found.</strong>
+          Separate name and position with a tab or at least two spaces.<pre></pre>`;
+        warning.querySelector("pre").textContent = skipped.join('\n');
+        warning.style.display = "block";
+      } else {
+        warning.style.display = "none";
+      }
+
+      const hasRows = processedData.length > 0;
+      document.getElementById("previewTable").style.display = hasRows ? "table" : "none";
+      downloadBtn.disabled = !hasRows;
+      printBtn.disabled = !hasRows;
     }
 
-    function quote(str) { return `"${str}"`; }
+    // CSV field: wrap in quotes and double any embedded quotes (RFC 4180)
+    function quote(str) { return `"${String(str).replace(/"/g, '""')}"`; }
 
     function formatDateAMPM(date) {
       const d = date.getDate().toString().padStart(2, '0');
@@ -160,10 +189,14 @@ Kylie Minogue	Roustabout"></textarea>
       processedData.forEach(({position,username,password}) => {
         const slip = document.createElement("div");
         slip.className = "slip";
-        slip.innerHTML = `
-          <div><span class="label">Username:</span> ${username}</div>
-          <div><span class="label">Password:</span> ${password}</div>
-          <div><span class="label">Position:</span> ${position}</div>`;
+        [["Username", username], ["Password", password], ["Position", position]].forEach(([label, value]) => {
+          const line = document.createElement("div");
+          const span = document.createElement("span");
+          span.className = "label";
+          span.textContent = label + ":";
+          line.append(span, " " + value);
+          slip.appendChild(line);
+        });
         sheet.appendChild(slip);
       });
     }
@@ -174,9 +207,21 @@ Kylie Minogue	Roustabout"></textarea>
       window.print();
     }
 
+    // Excludes characters easily confused on a printed slip: l I 1 O o 0
+    const PASSWORD_CHARS = "abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
     function makePassword(len) {
-      const cs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      return Array.from({length:len},()=>cs[Math.floor(Math.random()*cs.length)]).join('');
+      const cs = PASSWORD_CHARS;
+      // Rejection sampling over crypto random bytes to avoid modulo bias
+      const limit = 256 - (256 % cs.length);
+      let out = "";
+      while (out.length < len) {
+        const bytes = crypto.getRandomValues(new Uint8Array(len * 2));
+        for (const b of bytes) {
+          if (b < limit && out.length < len) out += cs[b % cs.length];
+        }
+      }
+      return out;
     }
   </script>
 </body>
