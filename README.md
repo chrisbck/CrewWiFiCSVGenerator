@@ -12,10 +12,11 @@ No build step, no dependencies, no server — open `index.html` in a browser. No
    Bob Dylan	Welder
    Kylie Ann Minogue	Roustabout
    ```
-2. Click **Generate Table** to preview names, positions and usernames.
-3. Click **Download CSV** and import the file into AntLabs.
-4. Click **Print Credentials** to print cut-out slips (username, password, position).
-5. **IG4 Login** opens the AntLabs admin page (`https://10.105.2.93/admin/index-login.ant`).
+2. Choose the **Plan** (defaults to `Regular Crew 28Days`).
+3. Click **Generate Table** to preview names, positions and usernames.
+4. Click **Download CSV** and import the file into AntLabs.
+5. Click **Print Credentials** to print cut-out slips (username, password, position).
+6. **IG4 Login** opens the AntLabs admin page (`https://10.105.2.93/admin/index-login.ant`).
 
 Download and Print are disabled until the table is generated, and again whenever the input is edited, so the CSV and printed slips always match.
 
@@ -27,13 +28,13 @@ Lines with no position (e.g. name and position separated by a single space) are 
 |---|---|
 | User ID | Initials + surname joined with underscores: `Kylie Ann Minogue` → `K_A_Minogue` |
 | Password | 7 random characters from a set that excludes look-alikes (`l I 1 O o 0`) |
-| Plan | `VTG starlink time based 30 GB plan` |
+| Plan | Chosen from the dropdown: `Regular Crew 28Days` (default) or `VTG starlink time based 30 GB plan` |
 | Zones | `2` |
 | Description | The crew member's position |
 | Valid From / Date | Time of download, `DD/MM/YYYY hh:mmAM` |
 | Creator | `admin` |
 
-Plan, zone and the IG4 address are hard-coded in `index.html`; edit them there if they change.
+The plan options, zone and the IG4 address are hard-coded in `index.html`; edit them there if they change.
 
 ## Duplicate usernames — intended behaviour
 

@@ -47,6 +47,14 @@
 Bob Dylan	Welder
 Kylie Minogue	Roustabout"></textarea>
 
+  <p>
+    <label for="planSelect">Plan:</label>
+    <select id="planSelect">
+      <option selected>Regular Crew 28Days</option>
+      <option>VTG starlink time based 30 GB plan</option>
+    </select>
+  </p>
+
   <div>
     <button onclick="processInput()">Generate Table</button>
     <button id="downloadBtn" onclick="downloadCSV()" disabled>Download CSV</button>
@@ -174,8 +182,9 @@ Kylie Minogue	Roustabout"></textarea>
         "Limit logins to the selected days and time","Daily Start Time","Daily End Time",
         "Device Restriction","Restricted MAC Address"];
       const lines = [header.map(quote).join(',')];
+      const plan = document.getElementById('planSelect').value;
       processedData.forEach(({name,position,username,password}) => {
-        const row = ["yes",username,password,'',"VTG starlink time based 30 GB plan",dateStr,'','', '',"2",position,'admin',dateStr,'off','','00:00:00','00:00:00','off',''];
+        const row = ["yes",username,password,'',plan,dateStr,'','', '',"2",position,'admin',dateStr,'off','','00:00:00','00:00:00','off',''];
         lines.push(row.map(quote).join(','));
       });
       const blob = new Blob([lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
