@@ -12,7 +12,7 @@ No build step, no dependencies, no server — open `index.html` in a browser. No
    Bob Dylan	Welder
    Kylie Ann Minogue	Roustabout
    ```
-2. Choose the **Plan** (defaults to `Regular Crew 28Days`).
+2. Choose the **Plan** (defaults to `Regular Crew 28 Days`).
 3. Click **Generate Table** to preview names, positions and usernames.
 4. Click **Download CSV** and import the file into AntLabs.
 5. Click **Print Credentials** to print cut-out slips (username, password, position).
@@ -28,7 +28,7 @@ Lines with no position (e.g. name and position separated by a single space) are 
 |---|---|
 | User ID | Initials + surname joined with underscores: `Kylie Ann Minogue` → `K_A_Minogue` |
 | Password | 7 random characters from a set that excludes look-alikes (`l I 1 O o 0`) |
-| Plan | Chosen from the dropdown: `Regular Crew 28Days` (default) or `VTG starlink time based 30 GB plan` |
+| Plan | Chosen from the dropdown: `Regular Crew 28 Days` (default) or `VTG starlink time based 30 GB plan` |
 | Zones | `2` |
 | Description | The crew member's position |
 | Valid From / Date | Time of download, `DD/MM/YYYY hh:mmAM` |
